@@ -87,4 +87,39 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         heandlerBurger(headerContactsBurger, headerContacts, 'header__contacts_open')
     }
+    {
+        const portfolioList = document.querySelector('.portfolio__list');
+        const pageOverlay = document.createElement('div');
+        pageOverlay.classList.add('page__overlay')
+        
+        portfolioList.addEventListener('click', (e) => {
+            const card = e.target.closest('.card');
+            if (card) {
+                disableScroll();
+                document.body.append(pageOverlay);
+                const title = document.querySelector('.card__client');
+                const picture = document.createElement('picture');
+                picture.style.cssText = `
+                    position: absolute;
+                    top: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 90%;
+                    max-width: 1440px;
+                `;
+                picture.innerHTML = `
+                    <source srcset="${card.dataset.fullImage}.avif" type="image/avif">
+                    <source srcset="${card.dataset.fullImage}.webp" type="image/webp">
+                    <img src="${card.dataset.fullImage}.jpg" alt="${title.textContent}" />
+                `;
+                pageOverlay.append(picture);
+            }
+        });
+
+        pageOverlay.addEventListener('click', () => {
+            enableScroll();
+            pageOverlay.remove();
+            pageOverlay.textContent = '';
+        });
+    }
 });
