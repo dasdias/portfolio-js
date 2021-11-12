@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     
-    {
+    { // Модальное окно
         const presentOrderBtn = document.querySelector('.present__order-btn');
         const pageOverlayModal = document.querySelector('.page__overlay_modal');
         const modalClose = document.querySelector('.modal__close');
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         hendlerModal(presentOrderBtn, pageOverlayModal, 'page__overlay_modal_open', modalClose, 'medium');
     }
-    {
+    { // Бургер меню
         const headerContacts = document.querySelector('.header__contacts');
         const headerContactsBurger = document.querySelector('.header__contacts-burger');
 
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         heandlerBurger(headerContactsBurger, headerContacts, 'header__contacts_open')
     }
-    {
+    { // Галерея
         const portfolioList = document.querySelector('.portfolio__list');
         const pageOverlay = document.createElement('div');
         pageOverlay.classList.add('page__overlay')
@@ -122,4 +122,78 @@ document.addEventListener('DOMContentLoaded', function () {
             pageOverlay.textContent = '';
         });
     }
-});
+    { // создание карточек на основе файла json
+        const portfolioList = document.querySelector('.portfolio__list');
+        const portfolioAdd = document.querySelector('.portfolio__add');
+        const COUNT_CARD = 2;
+
+        const getData = () => fetch('db.json')
+            .then((response)=> {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw 'Что то пошлоне так попробуйте позже. Ошибка: ' + response.status;
+                }
+            })
+            .catch(error => console.error(error))
+            
+            const createStore = async () => {
+                const data = await getData();
+                
+                return {
+                    data,
+                    counter: 0,
+                    count: COUNT_CARD,
+                    get length() {
+                        return this.data.length
+                    },
+                    get carData() {
+                        const renderData = this.data.slice(this.counter, this.counter + this.count)
+                        this.counter += renderData.length;
+                        return renderData;
+                    }
+                };
+            };
+
+            const renderCard = (data) => {
+                const cards = data.map((item) => {
+
+                    const {preview, year, image, client, type} = item // деструктуризация
+                    const li = document.createElement('li');
+                    li.classList.add('portfolio__item');
+                    li.innerHTML = `
+                            <article class="card" tabindex="0" role="button" aria-label="открыть макет" data-full-image="${image}">
+                                <picture class="card__picture">
+                                    <source srcset="${preview}.avif" type="image/avif">
+                                    <source srcset="${preview}.webp" type="image/webp">
+                                    <img src="${preview}.jpg" alt="превью iphone" width="166" height="103">
+                                </picture>
+
+                                <p class="card__data">
+                                    <span class="card__client">Клиент: ${client}</span>
+                                    <time class="card__date" datetime="${year}">год: ${year}</time>
+                                </p>
+
+                                <h3 class="card__title">${type}</h3>
+                            </article>
+                        `;
+                        return li
+                });
+                portfolioList.append(...cards); // спред оператор
+            };
+            const initPorfolio = async () => {
+                const store = await createStore();
+                renderCard(store.carData);
+                // console.log(store);
+                portfolioAdd.addEventListener('click', () => {
+                    renderCard(store.carData);
+                    // console.log(store.carData);
+                    // console.log(store.length, store.counter);
+                    if (store.length === store.counter) {
+                        portfolioAdd.remove();
+                    }
+                });
+            }
+            initPorfolio();
+        }
+    });
